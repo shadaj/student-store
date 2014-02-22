@@ -1,0 +1,32 @@
+# Home page
+GET     /                       controllers.Application.scan
+                                
+# Scan          
+GET       /scan                      controllers.Application.scan
+POST      /scanBarcode               controllers.Application.processBarcode
+
+GET       /manageProducts            controllers.Application.manageProducts
+POST      /createProduct             controllers.Application.createProduct
+POST      /manageProducts/:id/delete controllers.Application.deleteProduct(id: Long)
+GET       /manageBarcodes            controllers.Application.manageBarcodes
+POST      /createBarcode             controllers.Application.createBarcode
+POST      /manageBarcodes/:barcode/delete controllers.Application.deleteBarcode(barcode: String)
+GET       /managePurchases           controllers.Application.managePurchases
+POST      /addPurchase               controllers.Application.addPurchase
+GET       /export                    controllers.Application.export
+POST      /export                    controllers.Application.getExport
+
+
+# POST    /homework                  controllers.Application.newTask
+# POST    /homework/:id/delete       controllers.Application.deleteTask(id: Long)
+
+# Authentication
+GET     /login                              controllers.Application.login
+POST    /login                              controllers.Application.authenticate
+GET     /logout                             controllers.Application.logout
+# POST    /register                           controllers.Application.register
+# GET     /delete                             controllers.Application.delete
+# GET     /settings                           controllers.Application.settings
+# GET     /teacherManage                      controllers.Application.teacherManage
+# POST    /teacherManage                      controllers.Application.addTeacher
+# POST    /teacherManage/:name/delete         controllers.Application.removeTeacher(name)

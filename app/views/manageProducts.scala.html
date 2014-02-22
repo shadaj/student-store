@@ -1,0 +1,115 @@
+@(products: Seq[Product])
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Student Store</title>
+		<link rel="stylesheet" href="http://bootswatch.com/yeti/bootstrap.css">
+		<link rel="stylesheet" href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker.css">
+	</head>
+	<body>
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+          			<a href="scan" class="navbar-brand">Student Store</a>
+			        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+			        	<span class="icon-bar"></span>
+			            <span class="icon-bar"></span>
+			            <span class="icon-bar"></span>
+			        </button>
+        		</div>
+        		<div class="navbar-collapse collapse" id="navbar-main">
+        			<ul class="nav navbar-nav">
+            			<li><a href="/manageProducts">Manage Products</a></li>
+            			<li><a href="/manageBarcodes">Manage Barcodes</a></li>
+            			<li><a href="/managePurchases">Manage Purchases</a></li>
+            			<li><a href="/export">Export</a></li>
+          			</ul>
+          			<ul class="nav navbar-nav navbar-right">
+            			<li><a href="/logout">Logout</a></li>
+          			</ul>
+        		</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="page-header">
+				<div class="row">
+					<h1>Manage Products</h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-3">
+					<p>Name</p>
+				</div>
+				<div class="col-lg-3">
+					<p>Price</p>
+				</div>
+				<div class="col-lg-3">
+					<p>Bought</p>
+				</div>
+			</div>
+			@products.map { product =>
+				<div class="row">
+					<div class="col-lg-3">
+						<p>@product.name</p>
+					</div>
+					<div class="col-lg-3">
+						<p>@product.price</p>
+					</div>
+					<div class="col-lg-3">
+						<p>@product.bought</p>
+					</div>
+					<div class="col-lg-3">
+						@helper.form(routes.Application.deleteProduct(product.id)) {
+		      				<button type="submit" class="btn btn-danger">Delete</button>
+		    			}
+					</div>
+				</div>
+			}
+			
+			<form action="/createProduct" method="POST" class="form-horizontal">
+				<fieldset>
+					<legend>Create a product</legend>
+					<div class="form-group">
+						<label for="name" class="col-lg-2 control-label">Name</label>
+						<div class="col-lg-10">
+							<input type="text" class="form-control" id="name" name="name" placeholder="Name">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="price" class="col-lg-2 control-label">Price</label>
+						<div class="col-lg-10">
+							<div class="input-group">
+								<span class="input-group-addon">$</span>
+								<input type="text" class="form-control" id="price" name="price" placeholder="Price">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="bought" class="col-lg-2 control-label">Bought At</label>
+						<div class="col-lg-10">
+							<div class="input-group">
+								<span class="input-group-addon">$</span>
+								<input type="text" class="form-control" id="bought" name="bought" placeholder="Bought">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-lg-10 col-lg-offset-2">
+							<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+						</div>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="http://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+		<script>
+			$('#duedate-container input').datepicker({
+				format: "mm/dd/yyyy"
+			});
+		</script>
+	</body>
+</html>
