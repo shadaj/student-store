@@ -7,6 +7,8 @@ import anorm.SqlParser._
 import scala.language.postfixOps
 import org.joda.time.DateTime
 import java.util.Date
+import org.joda.time.DateTimeZone
+import java.util.TimeZone
 
 case class Purchase(date: DateTime, product: Product, quantity: Long)
 

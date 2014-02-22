@@ -49,6 +49,16 @@ object Product {
         'bought -> bought).executeUpdate()
     }
   }
+  
+  def update(id: Long, name: String, price: Double, bought: Double) = {
+    DB.withConnection { implicit c =>
+      SQL("""update product set (name, price, bought) = ({name}, {price}, {bought}) where id = {id}""").on(
+        'name -> name,
+        'price -> price,
+        'bought -> bought,
+        'id -> id).executeUpdate()
+    }
+  }
 
   def delete(id: Long) {
     Barcodes.delete(id)

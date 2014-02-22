@@ -1,4 +1,4 @@
-@(products: Seq[Product])
+@(product: Product)
 
 <!DOCTYPE html>
 <html>
@@ -36,44 +36,17 @@
 		<div class="container">
 			<div class="page-header">
 				<div class="row">
-					<h1>Manage Products</h1>
+					<h1>Edit Product</h1>
 				</div>
 			</div>
-			<table class="table table-striped table-hover">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Price</th>
-						<th>Bought</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					@products.map { product =>
-						<tr>
-							<td>@product.name</td>
-							<td>$@product.price</td>
-							<td>$@product.bought</td>
-							<td>
-								@helper.form(routes.Application.deleteProduct(product.id)) {
-		      						<button type="submit" class="btn btn-danger btn-xs">
-		      							<span class="glyphicon glyphicon-trash"></span> Delete
-		      						</button>
-		      						<a href="/manageProducts/@product.id/edit" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-		    					}
-		    				</td>
-						</tr>
-					}
-				</tbody>
-			</table>
 			
-			<form action="/createProduct" method="POST" class="form-horizontal">
+			<form action="/manageProducts/@product.id/edit" method="POST" class="form-horizontal">
 				<fieldset>
-					<legend>Create a product</legend>
+					<legend>Edit Product</legend>
 					<div class="form-group">
 						<label for="name" class="col-lg-2 control-label">Name</label>
 						<div class="col-lg-10">
-							<input type="text" class="form-control" id="name" name="name" placeholder="Name">
+							<input type="text" class="form-control" id="name" name="name" placeholder="Name" value="@product.name">
 						</div>
 					</div>
 					<div class="form-group">
@@ -81,7 +54,7 @@
 						<div class="col-lg-10">
 							<div class="input-group">
 								<span class="input-group-addon">$</span>
-								<input type="text" class="form-control" id="price" name="price" placeholder="Price">
+								<input type="text" class="form-control" id="price" name="price" placeholder="Price" value="@product.price">
 							</div>
 						</div>
 					</div>
@@ -90,7 +63,7 @@
 						<div class="col-lg-10">
 							<div class="input-group">
 								<span class="input-group-addon">$</span>
-								<input type="text" class="form-control" id="bought" name="bought" placeholder="Bought">
+								<input type="text" class="form-control" id="bought" name="bought" placeholder="Bought" value="@product.bought">
 							</div>
 						</div>
 					</div>

@@ -1,271 +1,226 @@
 package controllers
 
+import java.io.File
+import java.util.TimeZone
+import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
+import com.github.tototoshi.csv.CSVWriter
+
 import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
+
 import models._
 import views._
-import org.joda.time.DateTime
-import org.joda.time.LocalDateTime
-import java.io.File
-import com.github.tototoshi.csv.CSVWriter
+
+import org.joda.time.DateTimeZone
 
 object Application extends Controller {
+  def sameDate(a: DateTime, b: DateTime) = a.getDayOfMonth() == b.getDayOfMonth() && a.getMonthOfYear() == b.getMonthOfYear() && a.getYear() == b.getYear()
 
   def index = Redirect(routes.Application.scan)
 
-  // def homework = IsAuthenticated { username =>
-  //   _ =>
-  //     User.findByEmail(username).map { user =>
-  //       Ok(views.html.index(Homework.all(), homeworkForm, user))
-  //     }.getOrElse(Redirect(routes.Application.login))
-  // }
-
-  // val homeworkForm = Form(tuple(
-  //   "teacher" -> nonEmptyText,
-  //   "subject" -> nonEmptyText,
-  //   "due" -> jodaDate("MM/dd/yyyy"),
-  //   "assignment" -> nonEmptyText))
-
-  // def newTask = Action { implicit request =>
-  //   homeworkForm.bindFromRequest.fold(
-  //     errors => {
-  //       Redirect(routes.Application.homework)
-  //     },
-  //     value => {
-  //       val (teacher, subject, due, assignment) = value
-  //       Homework.create(teacher, subject, due, assignment)
-  //       Redirect(routes.Application.homework)
-  //     })
-  // }
-
-  // def deleteTask(id: Long) = Action {
-  //   Homework.delete(id)
-  //   Redirect(routes.Application.homework)
-  // }
-
   val scanForm = Form("barcode" -> nonEmptyText)
   def scan = IsAuthenticated { _ =>
-    _ => {
-      Ok(views.html.index())
+    implicit request => {
+      val today = new DateTime
+      Ok(views.html.index(Purchase.findAll.filter(p => sameDate(p.date, today)).map(p => p.product.price * p.quantity).sum, Purchase.findAll.filter(p => sameDate(p.date, today))))
     }
   }
 
-  def processBarcode = IsAuthenticated { _ => { implicit request =>
-    scanForm.bindFromRequest.fold(
-      errors => Redirect(routes.Application.scan),
-      barcode => {
-        val today = (new LocalDateTime).toLocalDate().toDateTimeAtStartOfDay()
-        val product = Barcodes.findByBarcode(barcode).get.product
-        Purchase.findAll.find(p => p.date == today && p.product == product) match {
-          case Some(Purchase(_, _, quantity)) => {
-            Purchase.update(today.toDate(), product.id, quantity + 1)
+  def processBarcode = IsAuthenticated { _ =>
+    { implicit request =>
+      scanForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.scan),
+        barcode => {
+          val today = new DateTime
+          Barcodes.findByBarcode(barcode) match {
+            case Some(bp) => {
+              val product = bp.product
+              Purchase.findAll.find(p => sameDate(today, p.date) && p.product == product) match {
+                case Some(Purchase(_, _, quantity)) => {
+                  Purchase.update(today.toDate(), product.id, quantity + 1)
+                }
+
+                case None => {
+                  Purchase.create(today.toDate(), product.id, 1)
+                }
+              }
+              
+              Redirect(routes.Application.scan())
+            }
+
+            case None => Redirect(routes.Application.scan()).flashing("warning" -> "Barcode was not found")
           }
+        })
+    }
+  }
 
-          case None => {
-            Purchase.create(today.toDate(), product.id, 1)
-          }
-        }
-
-        Redirect(routes.Application.scan())
-      })
-  }}
-
-  def manageProducts = IsAuthenticated { _ => { implicit request =>
-    Ok(views.html.manageProducts(Product.findAll))
-  }}
+  def manageProducts = IsAuthenticated { _ =>
+    { implicit request =>
+      Ok(views.html.manageProducts(Product.findAll))
+    }
+  }
 
   val createProductForm = Form(tuple("name" -> nonEmptyText, "price" -> nonEmptyText, "bought" -> nonEmptyText))
-  def createProduct = IsAuthenticated { _ => { implicit request =>
-    createProductForm.bindFromRequest.fold(
-      errors => Redirect(routes.Application.manageProducts),
-      formValues => {
-        val (name, price, bought) = formValues
-        Product.create(name, price.toDouble, bought.toDouble)
-        Redirect(routes.Application.manageProducts)
-      })
-  }}
+  def createProduct = IsAuthenticated { _ =>
+    { implicit request =>
+      createProductForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.manageProducts),
+        formValues => {
+          val (name, price, bought) = formValues
+          Product.create(name, price.toDouble, bought.toDouble)
+          Redirect(routes.Application.manageProducts)
+        })
+    }
+  }
 
-  def deleteProduct(id: Long) = IsAuthenticated { _ => { _ =>
-    Product.delete(id)
-    Redirect(routes.Application.manageProducts)
-  }}
+  def deleteProduct(id: Long) = IsAuthenticated { _ =>
+    { _ =>
+      Product.delete(id)
+      Redirect(routes.Application.manageProducts)
+    }
+  }
+  
+  def editProduct(id: Long) = IsAuthenticated { _ =>
+    { _ =>
+      Product.findById(id) match {
+        case Some(product) => Ok(views.html.editProduct(product))
+        case None => Redirect(routes.Application.manageProducts) 
+      }
+    }
+  }
+  
+  def updateProduct(id: Long) = IsAuthenticated { _ =>
+    { implicit request =>
+      createProductForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.manageProducts),
+        formValues => {
+          val (name, price, bought) = formValues
+          Product.update(id, name, price.toDouble, bought.toDouble)
+          Redirect(routes.Application.manageProducts)
+        })
+    }
+  }
 
-  def manageBarcodes = IsAuthenticated { _ => { _ =>
-    Ok(views.html.manageBarcodes(Barcodes.findAll, Product.findAll))
-  }}
+  def manageBarcodes = IsAuthenticated { _ =>
+    { _ =>
+      Ok(views.html.manageBarcodes(Barcodes.findAll, Product.findAll))
+    }
+  }
 
   val createBarcodeForm = Form(tuple("barcode" -> nonEmptyText, "product" -> nonEmptyText))
-  def createBarcode = IsAuthenticated { _ => { implicit request =>
-    createBarcodeForm.bindFromRequest.fold(
-      errors => Redirect(routes.Application.manageBarcodes),
-      formValues => {
-        val (barcode, product) = formValues
-        val productObject = Product.findByName(product)
-        Barcodes.create(barcode, productObject.get.id)
-        Redirect(routes.Application.manageBarcodes)
-      })
-  }}
+  def createBarcode = IsAuthenticated { _ =>
+    { implicit request =>
+      createBarcodeForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.manageBarcodes),
+        formValues => {
+          val (barcode, product) = formValues
+          val productObject = Product.findByName(product)
+          Barcodes.create(barcode, productObject.get.id)
+          Redirect(routes.Application.manageBarcodes)
+        })
+    }
+  }
 
-  def deleteBarcode(barcode: String) = IsAuthenticated { _ => { _ =>
-    Barcodes.delete(barcode)
-    Redirect(routes.Application.manageBarcodes)
-  }}
+  def deleteBarcode(barcode: String) = IsAuthenticated { _ =>
+    { _ =>
+      Barcodes.delete(barcode)
+      Redirect(routes.Application.manageBarcodes)
+    }
+  }
 
-  def managePurchases = IsAuthenticated { _ => { _ =>
-    Ok(views.html.managePurchases(Purchase.findAll, Product.findAll))
-  }}
+  def managePurchases = IsAuthenticated { _ =>
+    { _ =>
+      Ok(views.html.managePurchases(Purchase.findAll, Product.findAll))
+    }
+  }
 
   val addPurchaseForm = Form(tuple("date" -> jodaDate("MM/dd/yyyy"), "product" -> nonEmptyText, "quantity" -> nonEmptyText))
-  def addPurchase = IsAuthenticated { _ => { implicit request =>
-    addPurchaseForm.bindFromRequest.fold(
-      errors => Redirect(routes.Application.managePurchases),
-      formValues => {
-        val (date, product, quantity) = formValues
-        if (quantity == "0") {
-          Purchase.delete(date.toDate, Product.findByName(product).get.id)
-        } else {
-          Purchase.findAll.find(p => p.date == date && p.product == Product.findByName(product).get) match {
-            case Some(_) => {
-              Purchase.update(date.toDate, Product.findByName(product).get.id, quantity.toInt)
+  def addPurchase = IsAuthenticated { _ =>
+    { implicit request =>
+      addPurchaseForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.managePurchases),
+        formValues => {
+          val (date, product, quantity) = formValues
+          if (quantity == "0") {
+            Purchase.findAll.find(p => sameDate(p.date, date) && p.product == Product.findByName(product).get) match {
+              case Some(p) => Purchase.delete(p.date.toDate, Product.findByName(product).get.id)
+              case None =>
             }
-
-            case None => {
-              Purchase.create(date.toDate(), Product.findByName(product).get.id, quantity.toInt)
-            }
-          }
-        }
-
-        Redirect(routes.Application.managePurchases)
-      })
-  }}
-
-  def export = IsAuthenticated { _ => { _ =>
-    Ok(views.html.export(Purchase.findAll.map(_.date.toString("MM/YYYY")).distinct))
-  }}
-
-  val getExportForm = Form("date" -> jodaDate("MM/YYYY"))
-  def getExport = IsAuthenticated { _ => { implicit request =>
-    val moneyFormat = "%.2f"
-    getExportForm.bindFromRequest.fold(
-      errors => Redirect(routes.Application.export),
-      date => {
-        val file = new File("./exports/studentStoreExport.csv")
-        val writer = CSVWriter.open(file)
-        writer.writeRow(List("Student Store Purchases"))
-        writer.writeRow(List())
-        implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
-        var overallTotal = 0D
-        Purchase.findAll.filter(p => p.date.getMonthOfYear() == date.getMonthOfYear() && p.date.getYear() == p.date.getYear()).
-          groupBy(_.date).toSeq.sortBy(_._1).foreach {
-            case (date, purchases) =>
-              writer.writeRow(List(s"Total for day ${date.monthOfYear.get}/${date.dayOfMonth.getAsText}/${date.year.getAsText}", "Item", "Price", "Unit Sold", "Money Earned", "Price Bought", "Profit", "Total Profit"))
-              var total = 0D
-              purchases.foreach {
-                case Purchase(_, product, quantity) =>
-                  val moneyEarned = product.price * quantity
-                  val individualProfit = product.price - product.bought
-                  val totalProfit = individualProfit * quantity
-
-                  total += moneyEarned
-                  writer.writeRow(List("", product.name, "$" + product.price, quantity, "$" + moneyFormat.format(moneyEarned), "$" + product.bought, "$" + moneyFormat.format(individualProfit), "$" + moneyFormat.format(totalProfit)))
+          } else {
+            Purchase.findAll.find(p => sameDate(p.date, date) && p.product == Product.findByName(product).get) match {
+              case Some(_) => {
+                Purchase.update(date.toDate, Product.findByName(product).get.id, quantity.toInt)
               }
 
-              writer.writeRow(List("", "", "", "", "", "", "", "", "Total Earned: $" + moneyFormat.format(total)))
-
-              overallTotal += total
+              case None => {
+                Purchase.create(date.toDate(), Product.findByName(product).get.id, quantity.toInt)
+              }
+            }
           }
 
-        writer.writeRow(Seq("Total for all days: $" + moneyFormat.format(overallTotal)))
-        writer.close()
-        Ok.sendFile(file)
-      })
-  }}
+          Redirect(routes.Application.managePurchases)
+        })
+    }
+  }
 
-  // def settings = IsAuthenticated { username =>
-  //   _ => {
-  //     User.findByEmail(username).map { user =>
-  //       Ok(views.html.settings())
-  //     }.getOrElse(Redirect(routes.Application.login))
-  //   }
-  // }
+  def export = IsAuthenticated { _ =>
+    { _ =>
+      Ok(views.html.export(Purchase.findAll.map(_.date.toString("MM/YYYY")).distinct))
+    }
+  }
 
-  // def teacherManage = IsAuthenticated { username =>
-  //   _ =>
-  //     User.findByEmail(username).map { user =>
-  //       val cleanedTeachers = user.teachers.filter(_ != "") //Remove blank teacher that comes from empty SQL entry
-  //       Ok(views.html.teacherManage(cleanedTeachers, School.findByName(user.school).get.teachers))
-  //     }.getOrElse(Redirect(routes.Application.login))
-  // }
+  val getExportForm = Form("date" -> jodaDate("MM/YYYY"))
+  def getExport = IsAuthenticated { _ =>
+    { implicit request =>
+      val moneyFormat = "%.2f"
+      getExportForm.bindFromRequest.fold(
+        errors => Redirect(routes.Application.export),
+        date => {
+          new File("./exports").mkdir()
+          val file = new File("./exports/studentStoreExport.csv")
+          val writer = CSVWriter.open(file)
+          writer.writeRow(List("Student Store Purchases"))
+          writer.writeRow(List())
+          implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+          var overallTotal = 0D
+          Purchase.findAll.filter(p => p.date.getMonthOfYear() == date.getMonthOfYear() && p.date.getYear() == p.date.getYear()).
+            groupBy(_.date).toSeq.sortBy(_._1).foreach {
+              case (date, purchases) =>
+                writer.writeRow(List(s"Total for day ${date.monthOfYear.get}/${date.dayOfMonth.getAsText}/${date.year.getAsText}", "Item", "Price", "Unit Sold", "Money Earned", "Price Bought", "Profit", "Total Profit"))
+                var total = 0D
+                purchases.foreach {
+                  case Purchase(_, product, quantity) =>
+                    val moneyEarned = product.price * quantity
+                    val individualProfit = product.price - product.bought
+                    val totalProfit = individualProfit * quantity
 
-  // val addTeacherForm = Form("name" -> nonEmptyText)
+                    total += moneyEarned
+                    writer.writeRow(List("", product.name, "$" + product.price, quantity, "$" + moneyFormat.format(moneyEarned), "$" + product.bought, "$" + moneyFormat.format(individualProfit), "$" + moneyFormat.format(totalProfit)))
+                }
 
-  // def addTeacher = IsAuthenticated { username =>
-  //    implicit request => {
-  //     addTeacherForm.bindFromRequest.fold(
-  //         errors => Redirect(routes.Application.teacherManage),
-  //         teacherName => {
-  //           User.addTeacher(username, teacherName)
-  //           Redirect(routes.Application.teacherManage)
-  //         }
-  //     )
-  //   }
-  // }
+                writer.writeRow(List("", "", "", "", "", "", "", "", "Total Earned: $" + moneyFormat.format(total)))
 
-  // def removeTeacher(name: String) = IsAuthenticated { username =>
-  //    request => {
-  //     User.removeTeacher(username, name)
-  //     Redirect(routes.Application.teacherManage)
-  //   }
-  // }
+                overallTotal += total
+            }
 
-  // -- Authentication
+          writer.writeRow(Seq("Total for all days: $" + moneyFormat.format(overallTotal)))
+          writer.close()
+          Ok.sendFile(file)
+        })
+    }
+  }
 
   val loginForm = Form(
     tuple(
       "user" -> text,
       "password" -> text))
 
-  /**
-   * Login page.
-   */
-   def login = Action {
-     Ok(views.html.login())
-   }
-
-  // val registerForm = Form(
-  //   tuple(
-  //     "name" -> text,
-  //     "email" -> text,
-  //     "knownschool" -> text,
-  //     "otherschool" -> text,
-  //     "password" -> text))
-
-  // def register = Action { implicit request =>
-  //   registerForm.bindFromRequest.fold(
-  //     formWithErrors => Redirect(routes.Application.homework),
-  //     user => {
-  //       val (name, email, knownschool, otherschool, password) = user
-  //       if (knownschool == "Other") {
-  //         School.create(School(otherschool, Nil))
-  //         User.create(User(name, email, password, otherschool, Nil))
-  //       } else {
-  //         User.create(User(name, email, password, knownschool, Nil))
-  //       }
-  //       Redirect(routes.Application.homework).withSession("email" -> user._2)
-  //     })
-  // }
-
-  // def delete = IsAuthenticated { username =>
-  //   _ =>
-  //     User.findByEmail(username).map { user =>
-  //       User.delete(user)
-  //       Ok(views.html.index(Homework.all(), homeworkForm, user))
-  //       Redirect(routes.Application.login).withNewSession.flashing(
-  //         "success" -> "Your account has been deleted")
-  //     }.getOrElse(Redirect(routes.Application.login))
-  // }
+  def login = Action {
+    Ok(views.html.loginPage())
+  }
 
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
@@ -279,30 +234,16 @@ object Application extends Controller {
       })
   }
 
-  // /**
-  //  * Logout and clean the session.
-  //  */
-   def logout = Action {
-     Redirect(routes.Application.login).withNewSession
-   }
+  def logout = Action {
+    Redirect(routes.Application.login).withNewSession
+  }
 
-  // /**
-  //  * Retrieve the connected user email.
-  //  */
-   private def username(request: RequestHeader) = request.session.get("user")
+  private def username(request: RequestHeader) = request.session.get("user")
 
-  // /**
-  //  * Redirect to login if the user in not authorized.
-  //  */
-   private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
 
-  // // --
-
-  // /**
-  //  * Action for authenticated users.
-  //  */
-   def IsAuthenticated(f: => String => Request[AnyContent] => Result) =
-     Security.Authenticated(username, onUnauthorized) { user =>
-       Action(request => f(user)(request))
-     }
+  def IsAuthenticated(f: => String => Request[AnyContent] => Result) =
+    Security.Authenticated(username, onUnauthorized) { user =>
+      Action(request => f(user)(request))
+    }
 }

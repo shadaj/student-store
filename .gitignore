@@ -11,3 +11,4 @@ target/
 teacherManage.scala.html
 test/
 project/target
+bin/

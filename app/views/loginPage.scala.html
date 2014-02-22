@@ -1,4 +1,4 @@
-@(dates: Seq[String])
+@()
 
 <!DOCTYPE html>
 <html>
@@ -20,41 +20,31 @@
 			            <span class="icon-bar"></span>
 			        </button>
         		</div>
-        		<div class="navbar-collapse collapse" id="navbar-main">
-        			<ul class="nav navbar-nav">
-            			<li><a href="/manageProducts">Manage Products</a></li>
-            			<li><a href="/manageBarcodes">Manage Barcodes</a></li>
-            			<li><a href="/managePurchases">Manage Purchases</a></li>
-            			<li><a href="/export">Export</a></li>
-          			</ul>
-          			<ul class="nav navbar-nav navbar-right">
-            			<li><a href="/logout">Logout</a></li>
-          			</ul>
-        		</div>
 			</div>
 		</div>
 		<div class="container">
 			<div class="page-header">
 				<div class="row">
-					<h1>Export Data</h1>
+					<h1>Login</h1>
 				</div>
 			</div>
-			<form action="/export" method="POST" class="form-horizontal">
+			<form action="/login" method="POST" class="form-horizontal">
 				<fieldset>
-					<legend>Get Export</legend>
 					<div class="form-group">
-						<label for="date" class="col-lg-2 control-label">Date</label>
+						<label for="user" class="col-lg-2 control-label">Username</label>
 						<div class="col-lg-10">
-							<select class="form-control" id="date" name="date">
-								@dates.map { d =>
-									<option>@d</option>
-								}
-							</select>
+							<input class="form-control" id="user" name="user" placeholder="Username">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="password" class="col-lg-2 control-label">Password</label>
+						<div class="col-lg-10">
+							<input required type="password" class="form-control" id="password" name="password" placeholder="Password">
 						</div>
 					</div>
 					<div class="form-group">
 						<div class="col-lg-10 col-lg-offset-2">
-							<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+							<button type="submit" class="btn btn-primary" value="Login">Login</button>
 						</div>
 					</div>
 				</fieldset>
