@@ -257,7 +257,7 @@ object Application extends Controller {
         formWithErrors => Redirect(routes.Application.login),
         user => {
           if (user._1 == "***REMOVED***" && user._2 == "***REMOVED***") {
-            Redirect(routes.Application.scan).withSession("mode" -> "student-store")
+            Redirect(routes.Application.scan).withSession("mode" -> "Student Store")
           } else {
             Redirect(routes.Application.login)
           }
