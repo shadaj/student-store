@@ -2,61 +2,59 @@
 
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Student Store</title>
-		<link rel="stylesheet" href="http://bootswatch.com/yeti/bootstrap.css">
-		<link rel="stylesheet" href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker.css">
-	</head>
-	<body>
-		<div class="navbar navbar-default navbar-fixed-top">
-			<div class="container">
-				<div class="navbar-header">
-          			<a href="scan" class="navbar-brand">Student Store</a>
-			        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
-			        	<span class="icon-bar"></span>
-			            <span class="icon-bar"></span>
-			            <span class="icon-bar"></span>
-			        </button>
-        		</div>
-			</div>
-		</div>
-		<div class="container">
-			<div class="page-header">
-				<div class="row">
-					<h1>Login</h1>
-				</div>
-			</div>
-			<form action="/login" method="POST" class="form-horizontal">
-				<fieldset>
-					<div class="form-group">
-						<label for="user" class="col-lg-2 control-label">Username</label>
-						<div class="col-lg-10">
-							<input class="form-control" id="user" name="user" placeholder="Username">
-						</div>
-					</div>
-					<div class="form-group">
-						<label for="password" class="col-lg-2 control-label">Password</label>
-						<div class="col-lg-10">
-							<input required type="password" class="form-control" id="password" name="password" placeholder="Password">
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-lg-10 col-lg-offset-2">
-							<button type="submit" class="btn btn-primary" value="Login">Login</button>
-						</div>
-					</div>
-				</fieldset>
-			</form>
-		</div>
-		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-		<script src="http://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-		<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-		<script>
-			$('#duedate-container input').datepicker({
-				format: "mm/dd/yyyy"
-			});
-		</script>
-	</body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Store</title>
+    <link rel="stylesheet" href="http://bootswatch.com/yeti/bootstrap.css">
+    <link rel="stylesheet"
+          href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker.css">
+</head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="scan" class="navbar-brand">Student Store</a>
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="page-header">
+        <div class="row">
+            <h1>Login</h1>
+        </div>
+    </div>
+    <form action="/login" method="POST" class="form-horizontal">
+        <fieldset>
+            <div class="form-group">
+                <label for="user" class="col-lg-2 control-label">Username</label>
+
+                <div class="col-lg-10">
+                    <input class="form-control" id="user" name="user" placeholder="Username">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" class="col-lg-2 control-label">Password</label>
+
+                <div class="col-lg-10">
+                    <input required type="password" class="form-control" id="password" name="password"
+                           placeholder="Password">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-10 col-lg-offset-2">
+                    <button type="submit" class="btn btn-primary" value="Login">Login</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="http://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+</body>
 </html>

@@ -13,59 +13,69 @@ case class Product(id: Long, name: String, price: Double, bought: Double)
 object Product {
   val simple = {
     get[Long]("id") ~
-    get[String]("name") ~
-    get[Double]("price") ~
-    get[Double]("bought") map {
-      case id~name~price~bought => Product(id, name, price, bought)
+      get[String]("name") ~
+      get[Double]("price") ~
+      get[Double]("bought") map {
+      case id ~ name ~ price ~ bought => Product(id, name, price, bought)
     }
   }
 
-  def findById(id: Long): Option[Product] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from product where id = {id}").on(
-        'id -> id
-      ).as(simple.singleOpt)
-    }
-  }
-  
-  def findByName(name: String): Option[Product] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from product where name = {name}").on('name -> name).as(simple.singleOpt)
+  def findById(id: Long, mode: String): Option[Product] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from product where id = {id} and mode = {mode}").on(
+          'id -> id,
+          'mode -> mode
+        ).as(simple.singleOpt)
     }
   }
 
-  def findAll: Seq[Product] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from product").as(simple *)
-    }
-  }
-   
-  def create(name: String, price: Double, bought: Double) = {
-    DB.withConnection { implicit c =>
-      SQL("""insert into product (name, price, bought)
-                          values ({name}, {price}, {bought})""").on(
-        'name -> name,
-        'price -> price,
-        'bought -> bought).executeUpdate()
-    }
-  }
-  
-  def update(id: Long, name: String, price: Double, bought: Double) = {
-    DB.withConnection { implicit c =>
-      SQL("""update product set (name, price, bought) = ({name}, {price}, {bought}) where id = {id}""").on(
-        'name -> name,
-        'price -> price,
-        'bought -> bought,
-        'id -> id).executeUpdate()
+  def findByName(name: String, mode: String): Option[Product] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from product where name = {name} and mode = {mode}").on('name -> name, 'mode -> mode).as(simple.singleOpt)
     }
   }
 
-  def delete(id: Long) {
-    Barcodes.delete(id)
-    Purchase.delete(id)
-    DB.withConnection { implicit c =>
-      SQL("delete from product where id = {id}").on(
-        'id -> id).executeUpdate()
+  def findAll(mode: String): Seq[Product] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from product where mode = {mode}").on('mode -> mode).as(simple *)
+    }
+  }
+
+  def create(name: String, price: Double, bought: Double, mode: String) = {
+    DB.withConnection {
+      implicit c =>
+        SQL( """insert into product (name, price, bought, mode)
+                          values ({name}, {price}, {bought}, {mode})""").on(
+            'name -> name,
+            'price -> price,
+            'bought -> bought,
+            'mode -> mode).executeUpdate()
+    }
+  }
+
+  def update(product_id: Long, name: String, price: Double, bought: Double, mode: String) = {
+    DB.withConnection {
+      implicit c =>
+        SQL( """update product set (name, price, bought) = ({name}, {price}, {bought}) where id = {id} and mode = {mode}""").on(
+          'name -> name,
+          'price -> price,
+          'bought -> bought,
+          'id -> product_id,
+          'mode -> mode).executeUpdate()
+    }
+  }
+
+  def delete(product_id: Long, mode: String) {
+    Barcodes.delete(product_id, mode)
+    Purchase.delete(product_id, mode)
+    DB.withConnection {
+      implicit c =>
+        SQL("delete from product where id = {id} and mode = {mode}").on(
+          'id -> product_id,
+          'mode -> mode).executeUpdate()
     }
   }
 }

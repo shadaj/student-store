@@ -1,72 +1,74 @@
-@(dates: Seq[String])
+@(dates: Seq[String], mode: String)
 
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Student Store</title>
-		<link rel="stylesheet" href="http://bootswatch.com/yeti/bootstrap.css">
-		<link rel="stylesheet" href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker.css">
-	</head>
-	<body>
-		<div class="navbar navbar-default navbar-fixed-top">
-			<div class="container">
-				<div class="navbar-header">
-          			<a href="scan" class="navbar-brand">Student Store</a>
-			        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
-			        	<span class="icon-bar"></span>
-			            <span class="icon-bar"></span>
-			            <span class="icon-bar"></span>
-			        </button>
-        		</div>
-        		<div class="navbar-collapse collapse" id="navbar-main">
-        			<ul class="nav navbar-nav">
-            			<li><a href="/manageProducts">Manage Products</a></li>
-            			<li><a href="/manageBarcodes">Manage Barcodes</a></li>
-            			<li><a href="/managePurchases">Manage Purchases</a></li>
-            			<li><a href="/export">Export</a></li>
-          			</ul>
-          			<ul class="nav navbar-nav navbar-right">
-            			<li><a href="/logout">Logout</a></li>
-          			</ul>
-        		</div>
-			</div>
-		</div>
-		<div class="container">
-			<div class="page-header">
-				<div class="row">
-					<h1>Export Data</h1>
-				</div>
-			</div>
-			<form action="/export" method="POST" class="form-horizontal">
-				<fieldset>
-					<legend>Get Export</legend>
-					<div class="form-group">
-						<label for="date" class="col-lg-2 control-label">Date</label>
-						<div class="col-lg-10">
-							<select class="form-control" id="date" name="date">
-								@dates.map { d =>
-									<option>@d</option>
-								}
-							</select>
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-lg-10 col-lg-offset-2">
-							<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-						</div>
-					</div>
-				</fieldset>
-			</form>
-		</div>
-		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-		<script src="http://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-		<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-		<script>
-			$('#duedate-container input').datepicker({
-				format: "mm/dd/yyyy"
-			});
-		</script>
-	</body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Store</title>
+    <link rel="stylesheet" href="http://bootswatch.com/yeti/bootstrap.css">
+    <link rel="stylesheet"
+          href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker.css">
+</head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="scan" class="navbar-brand">Student Store</a>
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div class="navbar-collapse collapse" id="navbar-main">
+            <ul class="nav navbar-nav">
+                <li><a href="/manageProducts">Manage Products</a></li>
+                <li><a href="/manageBarcodes">Manage Barcodes</a></li>
+                <li><a href="/managePurchases">Manage Purchases</a></li>
+                <li><a href="/export">Export</a></li>
+            </ul>
+            <form action="/switchMode" method="POST" class="navbar-form navbar-left">
+                <div class="form-group">
+                    <input name="mode" type="text" class="form-control" value="@mode">
+                </div>
+                <button type="submit" class="btn btn-default">Switch</button>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="page-header">
+        <div class="row">
+            <h1>Export Data</h1>
+        </div>
+    </div>
+    <form action="/export" method="POST" class="form-horizontal">
+        <fieldset>
+            <legend>Get Export</legend>
+            <div class="form-group">
+                <label for="date" class="col-lg-2 control-label">Date</label>
+
+                <div class="col-lg-10">
+                    <select class="form-control" id="date" name="date">
+                        @dates.map { d =>
+                        <option>@d</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-10 col-lg-offset-2">
+                    <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="http://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+</body>
 </html>

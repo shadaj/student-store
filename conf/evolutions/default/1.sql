@@ -1,4 +1,4 @@
-# Homework schema
+# Student Store schema
  
 # --- !Ups
 

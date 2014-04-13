@@ -5,6 +5,8 @@ GET     /                       controllers.Application.scan
 GET       /scan                      controllers.Application.scan
 POST      /scanBarcode               controllers.Application.processBarcode
 
+POST      /switchMode                controllers.Application.switchMode
+
 GET       /manageProducts            controllers.Application.manageProducts
 POST      /createProduct             controllers.Application.createProduct
 POST      /manageProducts/:id/delete controllers.Application.deleteProduct(id: Long)
