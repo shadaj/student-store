@@ -117,7 +117,7 @@ object Application extends Controller {
           errors => Redirect(routes.Application.manageProducts),
           formValues => {
             val (name, price, bought) = formValues
-            Product.update(id, mode, price.toDouble, bought.toDouble, name)
+            Product.update(id, name, price.toDouble, bought.toDouble, mode)
             Redirect(routes.Application.manageProducts)
           })
     }
