@@ -157,7 +157,7 @@ object Application extends Controller {
   def managePurchases = IsAuthenticated {
     mode => {
       _ =>
-        Ok(views.html.managePurchases(Purchase.findAll(mode), Product.findAll(mode), mode))
+        Ok(views.html.managePurchases(Purchase.findAllSorted(mode), Product.findAll(mode), mode))
     }
   }
 

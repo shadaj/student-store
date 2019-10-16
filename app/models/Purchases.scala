@@ -27,6 +27,13 @@ object Purchase {
     }
   }
 
+  def findAllSorted(mode: String): Seq[Purchase] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from purchases where mode = {mode} order by purchase_date desc").on('mode -> mode).as(simple *)
+    }
+  }
+
   def findForDate(mode: String, date: DateTime): Seq[Purchase] = {
     DB.withConnection{
       implicit connection =>
