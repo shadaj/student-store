@@ -4,11 +4,9 @@
 .settings/
 .target/
 exports/
-login.scala.html
 logs/
-settings.scala.html
 target/
-teacherManage.scala.html
 test/
 project/target
+project/project/
 bin/

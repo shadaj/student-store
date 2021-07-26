@@ -7,10 +7,13 @@ import com.github.tototoshi.csv.CSVWriter
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
+import play.api.data.JodaForms._
 
 import models._
+import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
-object Application extends Controller {
+class Application @Inject() (components: ControllerComponents, purchases: Purchases, Barcodes: Barcodes, Product: Products)(implicit ec: ExecutionContext) extends AbstractController(components) {
   def removeTime(date: DateTime): DateTime = {
     date.withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0)
   }
@@ -24,7 +27,7 @@ object Application extends Controller {
       implicit request => {
         val today = new DateTime
         val date = removeTime(today)
-        val purchasesToday = Purchase.findForDate(mode, date)
+        val purchasesToday = purchases.findForDate(mode, date)
         Ok(views.html.index(purchasesToday.map(p => p.product.price * p.quantity).sum, purchasesToday, mode))
       }
   }
@@ -32,20 +35,20 @@ object Application extends Controller {
   def processBarcode = IsAuthenticated {
     mode => {
       implicit request =>
-        scanForm.bindFromRequest.fold(
+        scanForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.scan),
           barcode => {
             val today = new DateTime
             val date = removeTime(today)
             Barcodes.findByBarcode(barcode, mode) match {
               case Some(BarcodePair(_, product)) => {
-                Purchase.findForDateAndProduct(mode, date, product) match {
+                purchases.findForDateAndProduct(mode, date, product) match {
                   case Some(Purchase(_, _, quantity)) => {
-                    Purchase.update(date, product.id, quantity + 1, mode)
+                    purchases.update(date, product.id, quantity + 1, mode)
                   }
 
                   case None => {
-                    Purchase.create(date, product.id, 1, mode)
+                    purchases.create(date, product.id, 1, mode)
                   }
                 }
 
@@ -62,7 +65,7 @@ object Application extends Controller {
   def switchMode = IsAuthenticated {
     oldMode =>
       implicit request => {
-        switchModeForm.bindFromRequest.fold(
+        switchModeForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.scan),
           newMode => {
             Redirect(routes.Application.scan).withSession("mode" -> newMode)
@@ -82,7 +85,7 @@ object Application extends Controller {
   def createProduct = IsAuthenticated {
     mode => {
       implicit request =>
-        createProductForm.bindFromRequest.fold(
+        createProductForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.manageProducts),
           formValues => {
             val (name, price, bought) = formValues
@@ -113,7 +116,7 @@ object Application extends Controller {
   def updateProduct(id: Long) = IsAuthenticated {
     mode => {
       implicit request =>
-        createProductForm.bindFromRequest.fold(
+        createProductForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.manageProducts),
           formValues => {
             val (name, price, bought) = formValues
@@ -135,7 +138,7 @@ object Application extends Controller {
   def createBarcode = IsAuthenticated {
     mode => {
       implicit request =>
-        createBarcodeForm.bindFromRequest.fold(
+        createBarcodeForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.manageBarcodes),
           formValues => {
             val (barcode, product) = formValues
@@ -157,7 +160,7 @@ object Application extends Controller {
   def managePurchases = IsAuthenticated {
     mode => {
       _ =>
-        Ok(views.html.managePurchases(Purchase.findAllSorted(mode), Product.findAll(mode), mode))
+        Ok(views.html.managePurchases(purchases.findAllSorted(mode), Product.findAll(mode), mode))
     }
   }
 
@@ -166,23 +169,23 @@ object Application extends Controller {
   def addPurchase = IsAuthenticated {
     mode => {
       implicit request =>
-        addPurchaseForm.bindFromRequest.fold(
+        addPurchaseForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.managePurchases),
           formValues => {
             val (date, product, quantity) = formValues
             if (quantity == 0) {
-              Purchase.findForDateAndProduct(mode, date, Product.findByName(product, mode).get) match {
-                case Some(p) => Purchase.delete(p.date, Product.findByName(product, mode).get.id, mode)
+              purchases.findForDateAndProduct(mode, date, Product.findByName(product, mode).get) match {
+                case Some(p) => purchases.delete(p.date, Product.findByName(product, mode).get.id, mode)
                 case None =>
               }
             } else {
-              Purchase.findForDateAndProduct(mode, date, Product.findByName(product, mode).get) match {
+              purchases.findForDateAndProduct(mode, date, Product.findByName(product, mode).get) match {
                 case Some(_) => {
-                  Purchase.update(date, Product.findByName(product, mode).get.id, quantity, mode)
+                  purchases.update(date, Product.findByName(product, mode).get.id, quantity, mode)
                 }
 
                 case None => {
-                  Purchase.create(date, Product.findByName(product, mode).get.id, quantity, mode)
+                  purchases.create(date, Product.findByName(product, mode).get.id, quantity, mode)
                 }
               }
             }
@@ -195,7 +198,7 @@ object Application extends Controller {
   def export = IsAuthenticated {
     mode => {
       _ =>
-        Ok(views.html.export(Purchase.findAll(mode).map(_.date.toString("MM/YYYY")).distinct, mode))
+        Ok(views.html.export(purchases.findAll(mode).map(_.date.toString("MM/YYYY")).distinct, mode))
     }
   }
 
@@ -205,7 +208,7 @@ object Application extends Controller {
     mode => {
       implicit request =>
         val moneyFormat = "%.2f"
-        getExportForm.bindFromRequest.fold(
+        getExportForm.bindFromRequest().fold(
           errors => Redirect(routes.Application.export),
           date => {
             new File("./exports").mkdir()
@@ -215,12 +218,12 @@ object Application extends Controller {
             writer.writeRow(List())
             implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
             var overallTotal = 0D
-            Purchase.findAll(mode).filter(p => p.date.getMonthOfYear() == date.getMonthOfYear() && p.date.getYear() == p.date.getYear()).
+            purchases.findAll(mode).filter(p => p.date.getMonthOfYear() == date.getMonthOfYear() && p.date.getYear() == p.date.getYear()).
               groupBy(_.date).toSeq.sortBy(_._1).foreach {
-              case (date, purchases) =>
+              case (date, found) =>
                 writer.writeRow(List(s"Total for day ${date.monthOfYear.get}/${date.dayOfMonth.get}/${date.year.get}", "Item", "Price", "Unit Sold", "Money Earned", "Price Bought", "Profit", "Total Profit"))
                 var total = 0D
-                purchases.foreach {
+                found.foreach {
                   case Purchase(_, product, quantity) =>
                     val moneyEarned = product.price * quantity
                     val individualProfit = product.price - product.bought
@@ -253,7 +256,7 @@ object Application extends Controller {
 
   def authenticate = Action {
     implicit request =>
-      loginForm.bindFromRequest.fold(
+      loginForm.bindFromRequest().fold(
         formWithErrors => Redirect(routes.Application.login),
         user => {
           if (user._1 == "***REMOVED***" && user._2 == "***REMOVED***") {
