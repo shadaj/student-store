@@ -1,0 +1,21 @@
+@(extraHead: Html = Html(""), extraBody: Html = Html(""))(content: Html)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Store</title>
+    <link rel="stylesheet" href="https://bootswatch.com/3/yeti/bootstrap.css">
+    @extraHead
+</head>
+<body>
+
+@content
+
+<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="https://bootswatch.com/3/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+@extraBody
+</body>
+</html>

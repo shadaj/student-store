@@ -1,0 +1,36 @@
+@(mode: String, extraHead: Html = Html(""), extraBody: Html = Html(""))(content: Html)
+
+@main(extraHead = extraHead, extraBody = extraBody) {
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="scan" class="navbar-brand">Student Store</a>
+                <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav">
+                    <li><a href="/manageProducts">Manage Products</a></li>
+                    <li><a href="/manageBarcodes">Manage Barcodes</a></li>
+                    <li><a href="/managePurchases">Manage Purchases</a></li>
+                    <li><a href="/export">Export</a></li>
+                </ul>
+                <form action="/switchMode" method="POST" class="navbar-form navbar-left">
+                    <div class="form-group">
+                        <input name="mode" type="text" class="form-control" value="@mode">
+                    </div>
+                    <button type="submit" class="btn btn-default">Switch</button>
+                </form>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        @content
+    </div>
+}
