@@ -2,11 +2,11 @@
 
 @extraHead = {
     <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker3.min.css">
+        href="@routes.Assets.at("stylesheets/bootstrap-datepicker3.min.css")">
 }
 
 @extraBody = {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.js"></script>
+    <script src="@routes.Assets.at("javascripts/bootstrap-datepicker.min.js")"></script>
     <script>
         $('#purchasedate-container input').datepicker({
             format: "mm/dd/yyyy"
